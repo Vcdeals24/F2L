@@ -1,5 +1,5 @@
 from pyrogram import Client, filters
-from github import Github
+from github import Github, BadCredentialsException
 import os
 
 # Telegram Bot Configuration
@@ -15,13 +15,16 @@ REPO_PATH = "DL/"  # Path in the repository where files will be uploaded
 # Initialize Pyrogram Client
 app = Client("uploader_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Initialize GitHub API
-github = Github(GITHUB_TOKEN)
-repo = github.get_repo(REPO_NAME)
+try:
+    # Initialize GitHub API
+    github = Github(GITHUB_TOKEN)
+    repo = github.get_repo(REPO_NAME)
+except BadCredentialsException:
+    print("❌ Invalid GitHub credentials. Please check your token.")
+    exit(1)
 
 # Ensure downloads folder exists
 os.makedirs("downloads", exist_ok=True)
-
 
 @app.on_message(filters.document | filters.photo | filters.video)
 async def upload_to_github(client, message):
