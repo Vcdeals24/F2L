@@ -1,17 +1,21 @@
 import os
 from pyrogram import Client, filters
 from github import Github
+from dotenv import load_dotenv
 from io import BytesIO
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Telegram Bot configuration
-API_ID = 24972774  # Replace with your API ID
-API_HASH = "188f227d40cdbfaa724f1f3cd059fd8b"  # Replace with your API Hash
-BOT_TOKEN = "6401043461:AAH5GrnSCgbCldGRdLy-SDvhcK4JzgozI3Y"  # Replace with your bot token
+API_ID = os.getenv("API_ID")  # Telegram API ID
+API_HASH = os.getenv("API_HASH")  # Telegram API Hash
+BOT_TOKEN = os.getenv("BOT_TOKEN")  # Telegram Bot Token
 
 # GitHub Configuration
-GITHUB_TOKEN = "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"  # Replace with your GitHub token
-REPO_NAME = "vcdeals24/F2L"  # Your GitHub repository
-BRANCH_NAME = "main"  # The branch to upload files to
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # GitHub Personal Access Token
+REPO_NAME = os.getenv("REPO_NAME")  # GitHub repository name (e.g., "username/repository")
+BRANCH_NAME = os.getenv("BRANCH_NAME")  # Branch name (e.g., "main")
 
 # Initialize GitHub client
 g = Github(GITHUB_TOKEN)
