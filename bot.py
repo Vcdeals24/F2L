@@ -1,73 +1,80 @@
 import os
-from pyrogram import Client, filters
-from github import Github
-from dotenv import load_dotenv
-from io import BytesIO
+import requests
+from telegram import Update
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
 
-# Load environment variables from .env file
-load_dotenv()
+# Telegram Bot API Credentials
+API_ID = 24972774  # Replace with your API ID
+API_HASH = "188f227d40cdbfaa724f1f3cd059fd8b"  # Replace with your API Hash
+BOT_TOKEN = "6401043461:AAH5GrnSCgbCldGRdLy-SDvhcK4JzgozI3Y"  # Replace with your bot token
 
-# Telegram Bot configuration
-API_ID = os.getenv("API_ID")  # Telegram API ID
-API_HASH = os.getenv("API_HASH")  # Telegram API Hash
-BOT_TOKEN = os.getenv("BOT_TOKEN")  # Telegram Bot Token
+# GitHub API Token and Repo Information
+GITHUB_TOKEN = "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"  # Replace with your GitHub token
+REPO_OWNER = "vcdeals24"
+REPO_NAME = "F2L"
+BRANCH_NAME = "main"  # or any other branch you're working with
 
-# GitHub Configuration
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # GitHub Personal Access Token
-REPO_NAME = os.getenv("REPO_NAME")  # GitHub repository name (e.g., "username/repository")
-BRANCH_NAME = os.getenv("BRANCH_NAME")  # Branch name (e.g., "main")
+# Telegram Bot to handle incoming messages and media
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Send a file (image/video/document) to upload it to GitHub.")
 
-# Initialize GitHub client
-g = Github(GITHUB_TOKEN)
-repo = g.get_repo(REPO_NAME)
+def handle_media(update: Update, context: CallbackContext):
+    file = update.message.document or update.message.photo[-1] or update.message.video
+    file_id = file.file_id if file else None
+    
+    if file_id:
+        # Download the file
+        file = update.message.bot.get_file(file_id)
+        file_path = file.download()
 
-# Initialize Pyrogram Client
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+        # Upload to GitHub
+        upload_to_github(file_path)
 
-async def upload_file_to_github(file_name, file_content):
-    """
-    Upload file content to GitHub repository.
-    """
-    try:
-        # Check if the file already exists in the repo
-        try:
-            file = repo.get_contents(file_name, ref=BRANCH_NAME)
-            repo.update_file(file.path, f"Updating {file_name}", file_content, file.sha, branch=BRANCH_NAME)
-            print(f"Updated {file_name}")
-        except:
-            repo.create_file(file_name, f"Adding {file_name}", file_content, branch=BRANCH_NAME)
-            print(f"Uploaded {file_name}")
-    except Exception as e:
-        print(f"Error uploading file: {e}")
+        # Notify the user
+        update.message.reply_text(f"File '{file.file_name}' uploaded to GitHub successfully!")
 
-@app.on_message(filters.document | filters.photo | filters.video)
-async def handle_new_message(client, message):
-    if message.media:
-        # Determine the file type (image, video, document, etc.)
-        file_name = None
-        file_content = None
+def upload_to_github(file_path):
+    # GitHub API upload URL
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{os.path.basename(file_path)}"
 
-        # Handling image media
-        if message.photo:
-            file_name = "image.jpg"
-            file_content = await message.download()
+    # Get the file content
+    with open(file_path, 'rb') as f:
+        content = f.read()
 
-        # Handling document media
-        elif message.document:
-            file_name = message.document.file_name
-            file_content = await message.download()
+    # Encode the file content to base64
+    content_base64 = requests.utils.to_native_string(content).encode('utf-8').encode('base64')
 
-        # Handling video media
-        elif message.video:
-            file_name = "video.mp4"
-            file_content = await message.download()
+    # GitHub API headers
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
 
-        if file_name and file_content:
-            print(f"Received {file_name}, uploading to GitHub...")
-            # Upload the file content to GitHub
-            await upload_file_to_github(file_name, file_content)
-        else:
-            print("Unsupported media type.")
+    # GitHub API request payload
+    payload = {
+        "message": f"Upload {os.path.basename(file_path)}",
+        "content": content_base64,
+        "branch": BRANCH_NAME
+    }
 
-# Run the Pyrogram client
-app.run()
+    # Send the request to upload the file to GitHub
+    response = requests.put(url, json=payload, headers=headers)
+
+    # Handle the response from GitHub
+    if response.status_code == 201:
+        print(f"File uploaded successfully to {REPO_OWNER}/{REPO_NAME}!")
+    else:
+        print(f"Failed to upload file: {response.text}")
+
+def main():
+    updater = Updater(BOT_TOKEN, use_context=True)
+
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(MessageHandler(Filters.document | Filters.photo | Filters.video, handle_media))
+
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == "__main__":
+    main()
