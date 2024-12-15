@@ -1,3 +1,5 @@
 pyrogram
 tgcrypto
 PyGithub
+github
+python-dotenv
