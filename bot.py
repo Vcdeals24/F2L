@@ -1,7 +1,8 @@
 import os
 import requests
 from telegram import Update
-from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
+from telegram.ext import Application, MessageHandler, CommandHandler, CallbackContext
+from telegram.ext.filters import Command, Document, Photo, Video
 
 # Telegram Bot API Credentials
 API_ID = 24972774  # Replace with your API ID
@@ -15,23 +16,23 @@ REPO_NAME = "F2L"
 BRANCH_NAME = "main"  # or any other branch you're working with
 
 # Telegram Bot to handle incoming messages and media
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Send a file (image/video/document) to upload it to GitHub.")
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text("Send a file (image/video/document) to upload it to GitHub.")
 
-def handle_media(update: Update, context: CallbackContext):
+async def handle_media(update: Update, context: CallbackContext):
     file = update.message.document or update.message.photo[-1] or update.message.video
     file_id = file.file_id if file else None
     
     if file_id:
         # Download the file
-        file = update.message.bot.get_file(file_id)
-        file_path = file.download()
+        file = await update.message.bot.get_file(file_id)
+        file_path = await file.download()
 
         # Upload to GitHub
         upload_to_github(file_path)
 
         # Notify the user
-        update.message.reply_text(f"File '{file.file_name}' uploaded to GitHub successfully!")
+        await update.message.reply_text(f"File '{file.file_name}' uploaded to GitHub successfully!")
 
 def upload_to_github(file_path):
     # GitHub API upload URL
@@ -66,15 +67,14 @@ def upload_to_github(file_path):
     else:
         print(f"Failed to upload file: {response.text}")
 
-def main():
-    updater = Updater(BOT_TOKEN, use_context=True)
+async def main():
+    application = Application.builder().token(BOT_TOKEN).build()
 
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.document | Filters.photo | Filters.video, handle_media))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(Photo | Document | Video, handle_media))
 
-    updater.start_polling()
-    updater.idle()
+    await application.run_polling()
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
