@@ -2,15 +2,18 @@ import os
 import requests
 from pyrogram import Client, filters
 
-# GitHub API and Telegram Bot credentials
+# Telegram Bot API and GitHub Configurations
+API_ID = 24972774  # Replace with your API ID
+API_HASH = "188f227d40cdbfaa724f1f3cd059fd8b"  # Replace with your API Hash
 BOT_TOKEN = "6401043461:AAH5GrnSCgbCldGRdLy-SDvhcK4JzgozI3Y"  # Replace with your bot token
+
 GITHUB_TOKEN = "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"  # Replace with your GitHub token
 REPO_OWNER = "vcdeals24"
 REPO_NAME = "F2L"
 BRANCH_NAME = "main"  # or another branch you are working with
 
-# Initialize Pyrogram Client
-app = Client("my_bot", bot_token=BOT_TOKEN)
+# Initialize Pyrogram Client with API ID and Hash
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 # GitHub upload function
 def upload_to_github(file_path):
