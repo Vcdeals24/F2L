@@ -8,7 +8,7 @@ API_HASH = "188f227d40cdbfaa724f1f3cd059fd8b"  # Replace with your API Hash
 BOT_TOKEN = "6401043461:AAH5GrnSCgbCldGRdLy-SDvhcK4JzgozI3Y"  # Replace with your bot token
 
 # GitHub Configuration
-GITHUB_TOKEN = "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"  # Replace with your GitHub token
+GITHUB_TOKEN = "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"  # Replace with your GitHub token
 REPO_NAME = "vcdeals24/F2L"  # Your repository name
 REPO_PATH = "DL/"  # Path in the repository where files will be uploaded
 
