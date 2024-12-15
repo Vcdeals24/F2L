@@ -9,7 +9,7 @@ BOT_TOKEN = "6401043461:AAH5GrnSCgbCldGRdLy-SDvhcK4JzgozI3Y"  # Replace with you
 
 # GitHub Configuration
 GITHUB_TOKEN = "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"  # Replace with your GitHub token
-REPO_NAME = "Vcdeals24/F2L"  # Your repository name
+REPO_NAME = "F2L"  # Your repository name
 REPO_PATH = "DL/"  # Path in the repository where files will be uploaded
 
 # Initialize Pyrogram Client
